@@ -1,5 +1,6 @@
 package com.appointment.dto.availability;
 
+import com.appointment.enums.BlockType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,9 +12,11 @@ import java.util.UUID;
 @Builder
 public class BlockedSlotResponseDto {
 
-    private UUID uuid;
-    private LocalDate blockedDate;
-    private LocalTime blockStartTime;
-    private LocalTime blockEndTime;
-    private String reason;
+    private UUID blockUuid;
+    private BlockType blockType;
+    private LocalDate date;
+    private LocalTime startTime;
+    private LocalTime endTime;
+    private Boolean blockEntireDay;
+    private String notes;
 }

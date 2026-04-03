@@ -1,5 +1,6 @@
 package com.appointment.entity;
 
+import com.appointment.enums.BlockType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,6 +29,10 @@ public class BlockedSlot {
     @JoinColumn(name = "provider_id", nullable = false)
     private Provider provider;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "block_type")
+    private BlockType blockType;
+
     @Column(nullable = false)
     private LocalDate blockedDate;
 
@@ -37,7 +42,13 @@ public class BlockedSlot {
     @Column(nullable = false)
     private LocalTime blockEndTime;
 
+    @Column(name = "block_entire_day")
+    @Builder.Default
+    private Boolean blockEntireDay = false;
+
     private String reason;
+
+    private String notes;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

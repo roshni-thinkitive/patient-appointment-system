@@ -15,9 +15,11 @@ public interface ProviderAvailabilityRepository extends JpaRepository<ProviderAv
 
     List<ProviderAvailability> findAllByProvider(Provider provider);
 
-    Optional<ProviderAvailability> findByProviderAndDayOfWeek(Provider provider, DayOfWeek day);
+    List<ProviderAvailability> findAllByProviderAndDayOfWeek(Provider provider, DayOfWeek day);
 
     List<ProviderAvailability> findByProviderAndIsActiveTrue(Provider provider);
 
     Optional<ProviderAvailability> findByUuid(UUID uuid);
+
+    void deleteAllByProvider(Provider provider);
 }

@@ -1,26 +1,25 @@
 package com.appointment.dto.availability;
 
+import com.appointment.enums.BlockType;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.UUID;
 
 @Data
 public class BlockedSlotRequestDto {
 
-    @NotNull(message = "Provider UUID is required")
-    private UUID providerUuid;
+    private BlockType blockType;
 
-    @NotNull(message = "Blocked date is required")
-    private LocalDate blockedDate;
+    @NotNull(message = "Date is required")
+    private LocalDate date;
 
-    @NotNull(message = "Block start time is required")
-    private LocalTime blockStartTime;
+    private Boolean blockEntireDay = false;
 
-    @NotNull(message = "Block end time is required")
-    private LocalTime blockEndTime;
+    private LocalTime startTime;
 
-    private String reason;
+    private LocalTime endTime;
+
+    private String notes;
 }

@@ -19,9 +19,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -34,100 +39,134 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private final ProviderAvailabilityRepository availabilityRepository;
     private final BlockedSlotRepository blockedSlotRepository;
 
-    // ── Availability ──────────────────────────────────────────────────────────
+    private static final DayOfWeek[] DAYS_ORDER = {
+            DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
+            DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY,
+            DayOfWeek.SATURDAY
+    };
 
     @Override
-    @Transactional
-    public AvailabilityResponseDto addAvailability(AvailabilityRequestDto dto) {
-        Provider provider = findProviderByUuid(dto.getProviderUuid());
+    @Transactional(readOnly = true)
+    public ProviderAvailabilitySummaryDto getProviderFullAvailability(UUID providerUuid) {
+        Provider provider = findProviderByUuid(providerUuid);
 
-        if (dto.getStartTime().isAfter(dto.getEndTime()) || dto.getStartTime().equals(dto.getEndTime())) {
-            throw new BadRequestException("Start time must be before end time");
+        List<ProviderAvailability> allSlots = availabilityRepository.findAllByProvider(provider);
+        List<BlockedSlot> allBlocks = blockedSlotRepository.findAllByProvider(provider);
+
+        // Group slots by day of week
+        Map<DayOfWeek, List<ProviderAvailability>> slotsByDay = allSlots.stream()
+                .collect(Collectors.groupingBy(ProviderAvailability::getDayOfWeek));
+
+        // Build weekly schedule in Sun → Sat order
+        List<ProviderAvailabilitySummaryDto.DayScheduleDto> weeklySchedule = new ArrayList<>();
+        for (DayOfWeek day : DAYS_ORDER) {
+            List<ProviderAvailability> daySlots = slotsByDay.getOrDefault(day, List.of());
+            List<AvailabilityResponseDto> slotDtos = daySlots.stream()
+                    .map(this::toSlotResponseDto)
+                    .collect(Collectors.toList());
+
+            weeklySchedule.add(ProviderAvailabilitySummaryDto.DayScheduleDto.builder()
+                    .dayOfWeek(day)
+                    .slots(slotDtos)
+                    .build());
         }
 
-        ProviderAvailability availability = ProviderAvailability.builder()
-                .provider(provider)
-                .dayOfWeek(dto.getDayOfWeek())
-                .startTime(dto.getStartTime())
-                .endTime(dto.getEndTime())
-                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
+        // Calculate summary
+        double totalHours = allSlots.stream()
+                .mapToDouble(s -> Duration.between(s.getStartTime(), s.getEndTime()).toMinutes() / 60.0)
+                .sum();
+        int totalSlots = allSlots.size();
+        int totalBlocks = allBlocks.size();
+
+        ProviderAvailabilitySummaryDto.SummaryDto summary = ProviderAvailabilitySummaryDto.SummaryDto.builder()
+                .totalHoursPerWeek(totalHours)
+                .totalSlots(totalSlots)
+                .totalBlocks(totalBlocks)
                 .build();
 
-        availability = availabilityRepository.save(availability);
-        return toAvailabilityResponseDto(availability);
+        // Build blocked slots response
+        List<BlockedSlotResponseDto> blockedSlots = allBlocks.stream()
+                .map(this::toBlockedSlotResponseDto)
+                .collect(Collectors.toList());
+
+        return ProviderAvailabilitySummaryDto.builder()
+                .providerUuid(provider.getUuid())
+                .providerFullName(provider.getFirstName() + " " + provider.getLastName())
+                .specialization(provider.getSpecialization())
+                .weeklySchedule(weeklySchedule)
+                .summary(summary)
+                .blockedSlots(blockedSlots)
+                .build();
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<AvailabilityResponseDto> getProviderAvailability(UUID providerUuid) {
+    @Transactional
+    public ProviderAvailabilitySummaryDto saveOrUpdateWeeklySchedule(UUID providerUuid, AvailabilityRequestDto dto) {
         Provider provider = findProviderByUuid(providerUuid);
-        return availabilityRepository.findAllByProvider(provider).stream()
-                .map(this::toAvailabilityResponseDto)
-                .collect(Collectors.toList());
-    }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProviderAvailabilitySummaryDto> getAllProvidersAvailability() {
-        return providerRepository.findAll().stream()
-                .map(provider -> ProviderAvailabilitySummaryDto.builder()
-                        .providerUuid(provider.getUuid())
-                        .providerFullName(provider.getFirstName() + " " + provider.getLastName())
-                        .specialization(provider.getSpecialization())
-                        .availability(availabilityRepository.findAllByProvider(provider).stream()
-                                .map(this::toAvailabilityResponseDto)
-                                .collect(Collectors.toList()))
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional
-    public AvailabilityResponseDto updateAvailability(UUID availabilityUuid, AvailabilityRequestDto dto) {
-        ProviderAvailability availability = availabilityRepository.findByUuid(availabilityUuid)
-                .orElseThrow(() -> new ResourceNotFoundException("ProviderAvailability", "uuid", availabilityUuid));
-
-        if (dto.getStartTime().isAfter(dto.getEndTime()) || dto.getStartTime().equals(dto.getEndTime())) {
-            throw new BadRequestException("Start time must be before end time");
+        // Validate all slots
+        for (AvailabilityRequestDto.DaySchedule day : dto.getWeeklySchedule()) {
+            for (AvailabilityRequestDto.Slot slot : day.getSlots()) {
+                if (slot.getStartTime().isAfter(slot.getEndTime()) || slot.getStartTime().equals(slot.getEndTime())) {
+                    throw new BadRequestException(
+                            "Start time must be before end time for " + day.getDayOfWeek()
+                            + " slot: " + slot.getStartTime() + " - " + slot.getEndTime());
+                }
+            }
         }
 
-        availability.setDayOfWeek(dto.getDayOfWeek());
-        availability.setStartTime(dto.getStartTime());
-        availability.setEndTime(dto.getEndTime());
-        if (dto.getIsActive() != null) {
-            availability.setIsActive(dto.getIsActive());
+        // Delete all existing slots for this provider, then insert new ones
+        availabilityRepository.deleteAllByProvider(provider);
+        availabilityRepository.flush();
+
+        for (AvailabilityRequestDto.DaySchedule day : dto.getWeeklySchedule()) {
+            for (AvailabilityRequestDto.Slot slot : day.getSlots()) {
+                ProviderAvailability entity = ProviderAvailability.builder()
+                        .provider(provider)
+                        .dayOfWeek(day.getDayOfWeek())
+                        .startTime(slot.getStartTime())
+                        .endTime(slot.getEndTime())
+                        .isActive(true)
+                        .timezone(slot.getTimezone())
+                        .location(slot.getLocation())
+                        .build();
+                availabilityRepository.save(entity);
+            }
         }
 
-        availability = availabilityRepository.save(availability);
-        return toAvailabilityResponseDto(availability);
+        return getProviderFullAvailability(providerUuid);
     }
 
     @Override
     @Transactional
-    public void deleteAvailability(UUID availabilityUuid) {
-        ProviderAvailability availability = availabilityRepository.findByUuid(availabilityUuid)
-                .orElseThrow(() -> new ResourceNotFoundException("ProviderAvailability", "uuid", availabilityUuid));
-        availabilityRepository.delete(availability);
-    }
+    public BlockedSlotResponseDto addBlockedSlot(UUID providerUuid, BlockedSlotRequestDto dto) {
+        Provider provider = findProviderByUuid(providerUuid);
 
-    // ── Blocked Slots ─────────────────────────────────────────────────────────
+        LocalTime startTime;
+        LocalTime endTime;
 
-    @Override
-    @Transactional
-    public BlockedSlotResponseDto addBlockedSlot(BlockedSlotRequestDto dto) {
-        Provider provider = findProviderByUuid(dto.getProviderUuid());
-
-        if (dto.getBlockStartTime().isAfter(dto.getBlockEndTime())
-                || dto.getBlockStartTime().equals(dto.getBlockEndTime())) {
-            throw new BadRequestException("Block start time must be before block end time");
+        if (Boolean.TRUE.equals(dto.getBlockEntireDay())) {
+            startTime = LocalTime.of(0, 0);
+            endTime = LocalTime.of(23, 59);
+        } else {
+            if (dto.getStartTime() == null || dto.getEndTime() == null) {
+                throw new BadRequestException("Start time and end time are required when blockEntireDay is false");
+            }
+            if (dto.getStartTime().isAfter(dto.getEndTime()) || dto.getStartTime().equals(dto.getEndTime())) {
+                throw new BadRequestException("Block start time must be before block end time");
+            }
+            startTime = dto.getStartTime();
+            endTime = dto.getEndTime();
         }
 
         BlockedSlot blockedSlot = BlockedSlot.builder()
                 .provider(provider)
-                .blockedDate(dto.getBlockedDate())
-                .blockStartTime(dto.getBlockStartTime())
-                .blockEndTime(dto.getBlockEndTime())
-                .reason(dto.getReason())
+                .blockType(dto.getBlockType())
+                .blockedDate(dto.getDate())
+                .blockStartTime(startTime)
+                .blockEndTime(endTime)
+                .blockEntireDay(Boolean.TRUE.equals(dto.getBlockEntireDay()))
+                .notes(dto.getNotes())
                 .build();
 
         blockedSlot = blockedSlotRepository.save(blockedSlot);
@@ -135,23 +174,18 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<BlockedSlotResponseDto> getBlockedSlots(UUID providerUuid) {
-        Provider provider = findProviderByUuid(providerUuid);
-        return blockedSlotRepository.findAllByProvider(provider).stream()
-                .map(this::toBlockedSlotResponseDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     @Transactional
-    public void removeBlockedSlot(UUID blockedSlotUuid) {
+    public void removeBlockedSlot(UUID providerUuid, UUID blockedSlotUuid) {
+        Provider provider = findProviderByUuid(providerUuid);
         BlockedSlot slot = blockedSlotRepository.findByUuid(blockedSlotUuid)
                 .orElseThrow(() -> new ResourceNotFoundException("BlockedSlot", "uuid", blockedSlotUuid));
+
+        if (!slot.getProvider().getId().equals(provider.getId())) {
+            throw new ResourceNotFoundException("BlockedSlot", "uuid", blockedSlotUuid);
+        }
+
         blockedSlotRepository.delete(slot);
     }
-
-    // ── Availability Check ────────────────────────────────────────────────────
 
     @Override
     @Transactional(readOnly = true)
@@ -162,33 +196,34 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         log.info("Checking availability for provider: {}, date: {}, day: {}, start: {}, end: {}",
                 providerUuid, date, date.getDayOfWeek(), startTime, endTime);
 
-        // Check 1: Active availability record for this DayOfWeek
-        ProviderAvailability availability = availabilityRepository
-                .findByProviderAndDayOfWeek(provider, date.getDayOfWeek())
-                .orElse(null);
+        // Check 1: Find all active slots for this day of week
+        List<ProviderAvailability> daySlots = availabilityRepository
+                .findAllByProviderAndDayOfWeek(provider, date.getDayOfWeek())
+                .stream()
+                .filter(ProviderAvailability::getIsActive)
+                .collect(Collectors.toList());
 
-        if (availability == null || !availability.getIsActive()) {
+        if (daySlots.isEmpty()) {
             log.info("No active availability found for day: {}", date.getDayOfWeek());
             throw new BadRequestException(
-                "Provider has no availability set for " + date.getDayOfWeek()
-                + " (" + date + ")");
+                    "Provider has no availability set for " + date.getDayOfWeek()
+                    + " (" + date + ")");
         }
 
-        log.info("Found availability: {} to {}, isActive: {}",
-                availability.getStartTime(), availability.getEndTime(), availability.getIsActive());
+        // Check 2: Requested time must fit within at least one slot
+        boolean fitsInAnySlot = daySlots.stream().anyMatch(slot ->
+                !startTime.isBefore(slot.getStartTime()) && !endTime.isAfter(slot.getEndTime()));
 
-        // Check 2: Requested time within available window
-        boolean withinAvailableWindow = !startTime.isBefore(availability.getStartTime())
-                && !endTime.isAfter(availability.getEndTime());
-
-        if (!withinAvailableWindow) {
-            log.info("Requested time {}–{} is outside available window {}–{}",
-                    startTime, endTime, availability.getStartTime(), availability.getEndTime());
+        if (!fitsInAnySlot) {
+            String availableWindows = daySlots.stream()
+                    .map(s -> s.getStartTime() + " - " + s.getEndTime())
+                    .collect(Collectors.joining(", "));
+            log.info("Requested time {}–{} does not fit any slot on {}: [{}]",
+                    startTime, endTime, date.getDayOfWeek(), availableWindows);
             throw new BadRequestException(
-                "Provider is only available from " + availability.getStartTime()
-                + " to " + availability.getEndTime()
-                + " on " + date.getDayOfWeek()
-                + ". Requested: " + startTime + " to " + endTime);
+                    "Provider is available during [" + availableWindows
+                    + "] on " + date.getDayOfWeek()
+                    + ". Requested: " + startTime + " to " + endTime);
         }
 
         // Check 3: No blocked slot overlaps
@@ -196,9 +231,9 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         if (hasOverlap) {
             log.info("Blocked slot overlap found for date: {}, time: {}–{}", date, startTime, endTime);
             throw new BadRequestException(
-                "Provider has blocked " + date
-                + " from " + startTime + " to " + endTime
-                + ". Slot is not available.");
+                    "Provider has blocked " + date
+                    + " from " + startTime + " to " + endTime
+                    + ". Slot is not available.");
         }
 
         log.info("Provider is available for date: {}, time: {}–{}", date, startTime, endTime);
@@ -212,23 +247,25 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                 .orElseThrow(() -> new ResourceNotFoundException("Provider", "uuid", uuid));
     }
 
-    private AvailabilityResponseDto toAvailabilityResponseDto(ProviderAvailability a) {
+    private AvailabilityResponseDto toSlotResponseDto(ProviderAvailability a) {
         return AvailabilityResponseDto.builder()
-                .uuid(a.getUuid())
-                .dayOfWeek(a.getDayOfWeek())
+                .slotUuid(a.getUuid())
                 .startTime(a.getStartTime())
                 .endTime(a.getEndTime())
-                .isActive(a.getIsActive())
+                .timezone(a.getTimezone())
+                .location(a.getLocation())
                 .build();
     }
 
     private BlockedSlotResponseDto toBlockedSlotResponseDto(BlockedSlot b) {
         return BlockedSlotResponseDto.builder()
-                .uuid(b.getUuid())
-                .blockedDate(b.getBlockedDate())
-                .blockStartTime(b.getBlockStartTime())
-                .blockEndTime(b.getBlockEndTime())
-                .reason(b.getReason())
+                .blockUuid(b.getUuid())
+                .blockType(b.getBlockType())
+                .date(b.getBlockedDate())
+                .startTime(b.getBlockStartTime())
+                .endTime(b.getBlockEndTime())
+                .blockEntireDay(b.getBlockEntireDay())
+                .notes(b.getNotes())
                 .build();
     }
 }

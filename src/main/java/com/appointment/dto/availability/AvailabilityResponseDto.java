@@ -3,7 +3,6 @@ package com.appointment.dto.availability;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -11,9 +10,9 @@ import java.util.UUID;
 @Builder
 public class AvailabilityResponseDto {
 
-    private UUID uuid;
-    private DayOfWeek dayOfWeek;
+    private UUID slotUuid;
     private LocalTime startTime;
     private LocalTime endTime;
-    private Boolean isActive;
+    private String timezone;
+    private String location;
 }

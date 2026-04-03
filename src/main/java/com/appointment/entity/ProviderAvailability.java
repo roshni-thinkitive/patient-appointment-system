@@ -42,6 +42,10 @@ public class ProviderAvailability {
     @Builder.Default
     private Boolean isActive = true;
 
+    private String timezone;
+
+    private String location;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
