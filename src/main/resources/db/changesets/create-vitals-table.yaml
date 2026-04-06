@@ -1,0 +1,75 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-vitals-table
+      author: roshni
+      changes:
+        - createTable:
+            tableName: vitals
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: uuid
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: bp_systolic
+                  type: DOUBLE
+              - column:
+                  name: bp_diastolic
+                  type: DOUBLE
+              - column:
+                  name: heart_rate
+                  type: DOUBLE
+              - column:
+                  name: temperature
+                  type: DOUBLE
+              - column:
+                  name: weight
+                  type: DOUBLE
+              - column:
+                  name: height
+                  type: DOUBLE
+              - column:
+                  name: respiratory_rate
+                  type: DOUBLE
+              - column:
+                  name: o2_saturation
+                  type: DOUBLE
+              - column:
+                  name: bmi
+                  type: DOUBLE
+              - column:
+                  name: patient_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: vitals
+            baseColumnNames: patient_id
+            referencedTableName: patients
+            referencedColumnNames: id
+            constraintName: fk_vitals_patient_id

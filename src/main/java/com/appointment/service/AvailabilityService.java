@@ -1,6 +1,7 @@
 package com.appointment.service;
 
 import com.appointment.dto.availability.AvailabilityRequestDto;
+import com.appointment.dto.availability.AvailabilityResponseDto;
 import com.appointment.dto.availability.BlockedSlotRequestDto;
 import com.appointment.dto.availability.BlockedSlotResponseDto;
 import com.appointment.dto.availability.ProviderAvailabilitySummaryDto;
@@ -18,6 +19,10 @@ public interface AvailabilityService {
     BlockedSlotResponseDto addBlockedSlot(UUID providerUuid, BlockedSlotRequestDto dto);
 
     void removeBlockedSlot(UUID providerUuid, UUID blockedSlotUuid);
+
+    AvailabilityResponseDto updateSlot(UUID providerUuid, UUID slotUuid, AvailabilityRequestDto.Slot dto);
+
+    void deleteSlot(UUID providerUuid, UUID slotUuid);
 
     boolean isProviderAvailable(UUID providerUuid, LocalDate date, LocalTime startTime, LocalTime endTime);
 }

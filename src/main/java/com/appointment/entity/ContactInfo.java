@@ -19,8 +19,9 @@ public class ContactInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, updatable = false)
-    private UUID uuid;
+    @Builder.Default
+    @Column(unique = true)
+    private UUID uuid = UUID.randomUUID();
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false, unique = true)
@@ -52,7 +53,6 @@ public class ContactInfo {
 
     @PrePersist
     protected void onCreate() {
-        this.uuid = UUID.randomUUID();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

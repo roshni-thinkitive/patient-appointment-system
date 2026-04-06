@@ -21,4 +21,8 @@ public interface PatientService {
     InsuranceDto addInsurance(UUID uuid, InsuranceDto dto);
 
     Page<PatientResponseDto> getAllPatients(Pageable pageable);
+
+    void deletePatient(UUID uuid);
+
+    PatientResponseDto updateAllPatientFields(UUID uuid, PatientRegistrationDto dto);
 }

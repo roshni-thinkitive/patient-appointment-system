@@ -84,4 +84,13 @@ public class AppointmentController {
         appointmentService.cancelAppointment(uuid, reason);
         return ResponseEntity.ok(ResponseHelper.deleted("Appointment cancelled successfully"));
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<Map<String, Object>> getAllAppointments(
+            @PageableDefault(page = 0, size = 10, sort = "appointmentDate",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(
+                ResponseHelper.success("All appointments fetched successfully",
+                        appointmentService.getAllAppointments(pageable)));
+    }
 }

@@ -46,4 +46,18 @@ public class ProviderController {
                 ResponseHelper.success("Providers fetched successfully",
                         providerService.getAllProviders(pageable)));
     }
+
+    @PutMapping("/{uuid}")
+    public ResponseEntity<Map<String, Object>> updateProvider(
+            @PathVariable UUID uuid,
+            @Valid @RequestBody ProviderDto dto) {
+        ProviderResponseDto result = providerService.updateProvider(uuid, dto);
+        return ResponseEntity.ok(ResponseHelper.success("Provider updated successfully", result));
+    }
+
+    @DeleteMapping("/{uuid}")
+    public ResponseEntity<Map<String, Object>> deleteProvider(@PathVariable UUID uuid) {
+        providerService.deleteProvider(uuid);
+        return ResponseEntity.ok(ResponseHelper.deleted("Provider deleted successfully"));
+    }
 }

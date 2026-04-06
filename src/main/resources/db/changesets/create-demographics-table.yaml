@@ -1,0 +1,71 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-demographics-table
+      author: roshni
+      changes:
+        - createTable:
+            tableName: demographics
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: uuid
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: patient_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date_of_birth
+                  type: DATE
+              - column:
+                  name: gender
+                  type: VARCHAR(255)
+              - column:
+                  name: blood_group
+                  type: VARCHAR(255)
+              - column:
+                  name: marital_status
+                  type: VARCHAR(255)
+              - column:
+                  name: nationality
+                  type: VARCHAR(255)
+              - column:
+                  name: preferred_language
+                  type: VARCHAR(255)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: demographics
+            baseColumnNames: patient_id
+            referencedTableName: patients
+            referencedColumnNames: id
+            constraintName: fk_demographics_patient_id

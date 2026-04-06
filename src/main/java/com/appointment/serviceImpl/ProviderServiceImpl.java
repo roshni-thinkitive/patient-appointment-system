@@ -39,7 +39,7 @@ public class ProviderServiceImpl implements ProviderService {
     @Override
     @Transactional(readOnly = true)
     public ProviderResponseDto getProviderByUuid(UUID uuid) {
-        Provider provider = providerRepository.findByUuid(uuid)
+        Provider provider = providerRepository.findByUuidAndIsDeletedFalse(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Provider", "uuid", uuid));
         return toProviderResponseDto(provider);
     }
@@ -47,8 +47,33 @@ public class ProviderServiceImpl implements ProviderService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProviderResponseDto> getAllProviders(Pageable pageable) {
-        return providerRepository.findAll(pageable)
+        return providerRepository.findAllByIsDeletedFalse(pageable)
                 .map(this::toProviderResponseDto);
+    }
+
+    @Override
+    @Transactional
+    public ProviderResponseDto updateProvider(UUID uuid, ProviderDto dto) {
+        Provider provider = providerRepository.findByUuidAndIsDeletedFalse(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Provider", "uuid", uuid));
+
+        provider.setFirstName(dto.getFirstName());
+        provider.setLastName(dto.getLastName());
+        provider.setSpecialization(dto.getSpecialization());
+        provider.setLicenseNumber(dto.getLicenseNumber());
+        provider.setPhoneNumber(dto.getPhoneNumber());
+
+        provider = providerRepository.save(provider);
+        return toProviderResponseDto(provider);
+    }
+
+    @Override
+    @Transactional
+    public void deleteProvider(UUID uuid) {
+        Provider provider = providerRepository.findByUuidAndIsDeletedFalse(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Provider", "uuid", uuid));
+        provider.setIsDeleted(true);
+        providerRepository.save(provider);
     }
 
     private ProviderResponseDto toProviderResponseDto(Provider provider) {

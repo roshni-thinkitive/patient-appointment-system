@@ -1,0 +1,297 @@
+{
+  "info": {
+    "name": "Facesheet Module APIs",
+    "_postman_id": "face-sheet-0001-0002-0003-000000000001",
+    "description": "EHR Facesheet Module — patientUuid in URL path, not in request body.\n\nReal patient UUID: f3ffafa7-63be-468f-9196-9dd28caa4ff3 (Rose Kim)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "patientUuid", "value": "f3ffafa7-63be-468f-9196-9dd28caa4ff3", "type": "string" },
+    { "key": "allergyUuid", "value": "", "type": "string" },
+    { "key": "vitalsUuid", "value": "", "type": "string" },
+    { "key": "medicationUuid", "value": "", "type": "string" },
+    { "key": "historyUuid", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "exec": ["var d = pm.response.json();", "if (d.token) pm.collectionVariables.set('token', d.token);"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"test@admin.com\",\n  \"password\": \"Test@123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Allergy",
+      "item": [
+        {
+          "name": "Create Allergy",
+          "event": [{ "listen": "test", "script": { "exec": ["var d = pm.response.json();", "if (d.data && d.data.uuid) pm.collectionVariables.set('allergyUuid', d.data.uuid);"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"substance\": \"Penicillin\",\n  \"reaction\": \"Hives and swelling\",\n  \"severity\": \"SEVERE\",\n  \"onsetDate\": \"2023-06-15\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/allergies/{{patientUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","allergies","{{patientUuid}}"] }
+          }
+        },
+        {
+          "name": "Get Allergy by UUID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/allergies/{{allergyUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","allergies","{{allergyUuid}}"] }
+          }
+        },
+        {
+          "name": "Update Allergy",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"substance\": \"Amoxicillin\",\n  \"reaction\": \"Mild rash\",\n  \"severity\": \"MILD\",\n  \"onsetDate\": \"2023-06-15\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/allergies/{{patientUuid}}/{{allergyUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","allergies","{{patientUuid}}","{{allergyUuid}}"] }
+          }
+        },
+        {
+          "name": "Get All Allergies",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/allergies/{{patientUuid}}/all?page=0&pageSize=10&sortBy=createdAt&sortDirection=DESC", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","allergies","{{patientUuid}}","all"], "query": [{ "key": "page", "value": "0" },{ "key": "pageSize", "value": "10" },{ "key": "sortBy", "value": "createdAt" },{ "key": "sortDirection", "value": "DESC" }] }
+          }
+        },
+        {
+          "name": "Get All Allergies (filter MILD)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/allergies/{{patientUuid}}/all?severity=MILD", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","allergies","{{patientUuid}}","all"], "query": [{ "key": "severity", "value": "MILD" }] }
+          }
+        },
+        {
+          "name": "Delete Allergy (Soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/allergies/{{allergyUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","allergies","{{allergyUuid}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vitals",
+      "item": [
+        {
+          "name": "Create Vitals",
+          "event": [{ "listen": "test", "script": { "exec": ["var d = pm.response.json();", "if (d.data && d.data.uuid) pm.collectionVariables.set('vitalsUuid', d.data.uuid);"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"bpSystolic\": 120,\n  \"bpDiastolic\": 80,\n  \"heartRate\": 72,\n  \"temperature\": 98.6,\n  \"weight\": 180,\n  \"height\": 70,\n  \"respiratoryRate\": 16,\n  \"o2Saturation\": 98\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/vitals/{{patientUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","vitals","{{patientUuid}}"] }
+          }
+        },
+        {
+          "name": "Get Vitals by UUID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/vitals/{{vitalsUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","vitals","{{vitalsUuid}}"] }
+          }
+        },
+        {
+          "name": "Update Vitals",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"bpSystolic\": 118,\n  \"bpDiastolic\": 78,\n  \"heartRate\": 70,\n  \"temperature\": 98.4,\n  \"weight\": 150,\n  \"height\": 65,\n  \"respiratoryRate\": 15,\n  \"o2Saturation\": 99\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/vitals/{{patientUuid}}/{{vitalsUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","vitals","{{patientUuid}}","{{vitalsUuid}}"] }
+          }
+        },
+        {
+          "name": "Get All Vitals",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/vitals/{{patientUuid}}/all?page=0&pageSize=10&sortBy=createdAt&sortDirection=DESC", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","vitals","{{patientUuid}}","all"], "query": [{ "key": "page", "value": "0" },{ "key": "pageSize", "value": "10" },{ "key": "sortBy", "value": "createdAt" },{ "key": "sortDirection", "value": "DESC" }] }
+          }
+        },
+        {
+          "name": "Delete Vitals (Soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/vitals/{{vitalsUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","vitals","{{vitalsUuid}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Medication",
+      "item": [
+        {
+          "name": "Create Medication",
+          "event": [{ "listen": "test", "script": { "exec": ["var d = pm.response.json();", "if (d.data && d.data.uuid) pm.collectionVariables.set('medicationUuid', d.data.uuid);"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Lisinopril\",\n  \"dosage\": \"10mg\",\n  \"frequency\": \"Once daily\",\n  \"route\": \"Oral\",\n  \"prescriber\": \"Dr. Park\",\n  \"startDate\": \"2026-01-15\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/medications/{{patientUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","medications","{{patientUuid}}"] }
+          }
+        },
+        {
+          "name": "Get Medication by UUID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/medications/{{medicationUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","medications","{{medicationUuid}}"] }
+          }
+        },
+        {
+          "name": "Update Medication",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Lisinopril\",\n  \"dosage\": \"20mg\",\n  \"frequency\": \"Once daily\",\n  \"route\": \"Oral\",\n  \"prescriber\": \"Dr. Park\",\n  \"startDate\": \"2026-01-15\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/medications/{{patientUuid}}/{{medicationUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","medications","{{patientUuid}}","{{medicationUuid}}"] }
+          }
+        },
+        {
+          "name": "Get All Medications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/medications/{{patientUuid}}/all?page=0&pageSize=10&sortBy=createdAt&sortDirection=DESC", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","medications","{{patientUuid}}","all"], "query": [{ "key": "page", "value": "0" },{ "key": "pageSize", "value": "10" },{ "key": "sortBy", "value": "createdAt" },{ "key": "sortDirection", "value": "DESC" }] }
+          }
+        },
+        {
+          "name": "Delete Medication (Soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/medications/{{medicationUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","medications","{{medicationUuid}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "item": [
+        {
+          "name": "Create Past Medical History",
+          "event": [{ "listen": "test", "script": { "exec": ["var d = pm.response.json();", "if (d.data && d.data.uuid) pm.collectionVariables.set('historyUuid', d.data.uuid);"], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Diabetes Type 2\",\n  \"date\": \"2019-03-10\",\n  \"note\": \"Managed with Metformin\",\n  \"recordedDate\": \"2024-01-15\",\n  \"onSetAge\": 42,\n  \"historyType\": \"PAST_MEDICAL\",\n  \"relation\": \"SELF\",\n  \"condition\": \"Diabetes Type 2\",\n  \"notes\": \"HbA1c 6.5\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/histories/{{patientUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","histories","{{patientUuid}}"] }
+          }
+        },
+        {
+          "name": "Create Past Surgical History",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Appendectomy\",\n  \"date\": \"2020-07-20\",\n  \"note\": \"Laparoscopic, no complications\",\n  \"historyType\": \"PAST_SURGICAL\",\n  \"relation\": \"SELF\",\n  \"condition\": \"Appendectomy\",\n  \"notes\": \"Recovery uneventful\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/histories/{{patientUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","histories","{{patientUuid}}"] }
+          }
+        },
+        {
+          "name": "Create Family History",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Heart Disease\",\n  \"date\": \"2015-01-01\",\n  \"note\": \"Father had MI at 58\",\n  \"onSetAge\": 58,\n  \"historyType\": \"FAMILY\",\n  \"relation\": \"FATHER\",\n  \"condition\": \"Coronary Artery Disease\",\n  \"notes\": \"Required stent placement\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/histories/{{patientUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","histories","{{patientUuid}}"] }
+          }
+        },
+        {
+          "name": "Get History by UUID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/histories/{{historyUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","histories","{{historyUuid}}"] }
+          }
+        },
+        {
+          "name": "Update History",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Diabetes Type 2 (controlled)\",\n  \"date\": \"2019-03-10\",\n  \"note\": \"Well managed\",\n  \"recordedDate\": \"2026-04-01\",\n  \"onSetAge\": 42,\n  \"historyType\": \"PAST_MEDICAL\",\n  \"relation\": \"SELF\",\n  \"condition\": \"Diabetes Type 2\",\n  \"notes\": \"HbA1c now 5.8\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/histories/{{patientUuid}}/{{historyUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","histories","{{patientUuid}}","{{historyUuid}}"] }
+          }
+        },
+        {
+          "name": "Delete History (Soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/histories/{{historyUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","histories","{{historyUuid}}"] }
+          }
+        },
+        {
+          "name": "Get All History (all types)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/histories/{{patientUuid}}/all?page=0&pageSize=10&sortBy=createdAt&sortDirection=DESC", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","histories","{{patientUuid}}","all"], "query": [{ "key": "page", "value": "0" },{ "key": "pageSize", "value": "10" },{ "key": "sortBy", "value": "createdAt" },{ "key": "sortDirection", "value": "DESC" }] }
+          }
+        },
+        {
+          "name": "Get Past Medical History only",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/histories/{{patientUuid}}/all?history=PAST_MEDICAL", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","histories","{{patientUuid}}","all"], "query": [{ "key": "history", "value": "PAST_MEDICAL" }] }
+          }
+        },
+        {
+          "name": "Get Past Surgical History only",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/histories/{{patientUuid}}/all?history=PAST_SURGICAL", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","histories","{{patientUuid}}","all"], "query": [{ "key": "history", "value": "PAST_SURGICAL" }] }
+          }
+        },
+        {
+          "name": "Get Family History only",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/histories/{{patientUuid}}/all?history=FAMILY", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","histories","{{patientUuid}}","all"], "query": [{ "key": "history", "value": "FAMILY" }] }
+          }
+        },
+        {
+          "name": "Get Family History by Relative (FATHER)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/histories/{{patientUuid}}/all?history=FAMILY&relative=FATHER", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","histories","{{patientUuid}}","all"], "query": [{ "key": "history", "value": "FAMILY" },{ "key": "relative", "value": "FATHER" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Facesheet",
+      "item": [
+        {
+          "name": "Get Facesheet",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/ehr/v1/facesheet/{{patientUuid}}", "host": ["{{baseUrl}}"], "path": ["api","ehr","v1","facesheet","{{patientUuid}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}

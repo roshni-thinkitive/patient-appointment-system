@@ -25,4 +25,6 @@ public interface AppointmentService {
     AppointmentResponseDto updateStatus(UUID appointmentUuid, AppointmentStatusUpdateDto dto);
 
     void cancelAppointment(UUID appointmentUuid, String reason);
+
+    Page<AppointmentResponseDto> getAllAppointments(Pageable pageable);
 }

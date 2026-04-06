@@ -14,4 +14,8 @@ public interface ProviderService {
     ProviderResponseDto getProviderByUuid(UUID uuid);
 
     Page<ProviderResponseDto> getAllProviders(Pageable pageable);
+
+    ProviderResponseDto updateProvider(UUID uuid, ProviderDto dto);
+
+    void deleteProvider(UUID uuid);
 }

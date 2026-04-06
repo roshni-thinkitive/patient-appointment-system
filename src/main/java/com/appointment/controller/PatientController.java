@@ -80,4 +80,18 @@ public class PatientController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ResponseHelper.created("Insurance added successfully", result));
     }
+
+    @DeleteMapping("/{uuid}")
+    public ResponseEntity<Map<String, Object>> deletePatient(@PathVariable UUID uuid) {
+        patientService.deletePatient(uuid);
+        return ResponseEntity.ok(ResponseHelper.deleted("Patient deleted successfully"));
+    }
+
+    @PutMapping("/{uuid}/update-all")
+    public ResponseEntity<Map<String, Object>> updateAllPatientFields(
+            @PathVariable UUID uuid,
+            @Valid @RequestBody PatientRegistrationDto dto) {
+        PatientResponseDto result = patientService.updateAllPatientFields(uuid, dto);
+        return ResponseEntity.ok(ResponseHelper.success("Patient updated successfully", result));
+    }
 }

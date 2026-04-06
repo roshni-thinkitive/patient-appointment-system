@@ -1,0 +1,702 @@
+{
+  "info": {
+    "name": "Patient Appointment System",
+    "_postman_id": "f8a3b1c2-d4e5-6789-abcd-ef0123456789",
+    "description": "Complete API collection for the Patient Appointment System.\n\nRun order: Auth > Providers > Patients > Availability > Appointments\n\nAfter Login, the token is auto-saved. After Create calls, UUIDs are auto-saved to collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "providerUuid", "value": "", "type": "string" },
+    { "key": "patientUuid", "value": "", "type": "string" },
+    { "key": "appointmentUuid", "value": "", "type": "string" },
+    { "key": "blockUuid", "value": "", "type": "string" },
+    { "key": "slotUuid", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (Doctor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Minho Park\",\n  \"email\": \"minho.park@hospital.com\",\n  \"password\": \"Minho@123\",\n  \"role\": \"DOCTOR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register (Patient)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lisa Kim\",\n  \"email\": \"lisa.kim@gmail.com\",\n  \"password\": \"Lisa@123\",\n  \"role\": \"PATIENT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@hospital.com\",\n  \"password\": \"Admin@123\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "  pm.collectionVariables.set('token', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"minho.park@hospital.com\",\n  \"password\": \"Minho@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Providers",
+      "item": [
+        {
+          "name": "Create Provider",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.uuid) {",
+                  "  pm.collectionVariables.set('providerUuid', jsonData.data.uuid);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Minho\",\n  \"lastName\": \"Park\",\n  \"specialization\": \"Cardiology\",\n  \"licenseNumber\": \"LIC-2026-MH-4421\",\n  \"phoneNumber\": \"+91-9876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get Provider by UUID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/{{providerUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "{{providerUuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Get All Providers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers?page=0&size=10&sort=createdAt,desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sort", "value": "createdAt,desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Provider",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Minho\",\n  \"lastName\": \"Park\",\n  \"specialization\": \"Interventional Cardiology\",\n  \"licenseNumber\": \"LIC-2026-MH-4421\",\n  \"phoneNumber\": \"+91-9876543999\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/{{providerUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "{{providerUuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Provider (Soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/{{providerUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "providers", "{{providerUuid}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "Create Patient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.uuid) {",
+                  "  pm.collectionVariables.set('patientUuid', jsonData.data.uuid);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demographics\": {\n    \"firstName\": \"Lisa\",\n    \"lastName\": \"Kim\",\n    \"dateOfBirth\": \"1995-08-15\",\n    \"gender\": \"Female\",\n    \"bloodGroup\": \"O+\",\n    \"maritalStatus\": \"Single\",\n    \"nationality\": \"Indian\",\n    \"preferredLanguage\": \"English\"\n  },\n  \"contactInfo\": {\n    \"phoneNumber\": \"+91-9123456789\",\n    \"alternatePhone\": \"+91-9123456780\",\n    \"email\": \"lisa.kim@gmail.com\",\n    \"addressLine1\": \"42 MG Road\",\n    \"addressLine2\": \"Apt 7B\",\n    \"city\": \"Pune\",\n    \"state\": \"Maharashtra\",\n    \"country\": \"India\",\n    \"zipCode\": \"411001\"\n  },\n  \"emergencyContact\": {\n    \"contactName\": \"Jin Kim\",\n    \"relationship\": \"Brother\",\n    \"phoneNumber\": \"+91-9988776655\",\n    \"email\": \"jin.kim@gmail.com\"\n  },\n  \"insurance\": {\n    \"insuranceName\": \"Star Health\",\n    \"payerId\": \"STAR-001\",\n    \"memberId\": \"MEM-LK-2026\",\n    \"groupNumber\": \"GRP-100\",\n    \"policyHolderName\": \"Lisa Kim\",\n    \"relationship\": \"Self\",\n    \"startDate\": \"2026-01-01\",\n    \"endDate\": \"2027-01-01\",\n    \"isPrimary\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get Patient by UUID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{patientUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{patientUuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Get All Patients",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients?page=0&size=10&sort=createdAt,desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sort", "value": "createdAt,desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Demographics",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Lisa\",\n  \"lastName\": \"Kim-Park\",\n  \"dateOfBirth\": \"1995-08-15\",\n  \"gender\": \"Female\",\n  \"bloodGroup\": \"O+\",\n  \"maritalStatus\": \"Married\",\n  \"nationality\": \"Indian\",\n  \"preferredLanguage\": \"English\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{patientUuid}}/demographics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{patientUuid}}", "demographics"]
+            }
+          }
+        },
+        {
+          "name": "Update Contact Info",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+91-9123456789\",\n  \"alternatePhone\": \"+91-9123456780\",\n  \"email\": \"lisa.kimpark@gmail.com\",\n  \"addressLine1\": \"15 FC Road\",\n  \"addressLine2\": \"Floor 3\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\",\n  \"country\": \"India\",\n  \"zipCode\": \"400001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{patientUuid}}/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{patientUuid}}", "contact"]
+            }
+          }
+        },
+        {
+          "name": "Add Emergency Contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contactName\": \"Jin Kim\",\n  \"relationship\": \"Brother\",\n  \"phoneNumber\": \"+91-9988776655\",\n  \"alternatePhone\": \"+91-9988776656\",\n  \"email\": \"jin.kim@gmail.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{patientUuid}}/emergency-contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{patientUuid}}", "emergency-contact"]
+            }
+          }
+        },
+        {
+          "name": "Add Insurance",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"insuranceName\": \"Star Health\",\n  \"payerId\": \"STAR-001\",\n  \"memberId\": \"MEM-LK-2026\",\n  \"groupNumber\": \"GRP-100\",\n  \"policyHolderName\": \"Lisa Kim\",\n  \"relationship\": \"Self\",\n  \"startDate\": \"2026-01-01\",\n  \"endDate\": \"2027-01-01\",\n  \"isPrimary\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{patientUuid}}/insurance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{patientUuid}}", "insurance"]
+            }
+          }
+        },
+        {
+          "name": "Update All Patient Fields",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demographics\": {\n    \"firstName\": \"Lisa\",\n    \"lastName\": \"Kim-Park\",\n    \"dateOfBirth\": \"1995-08-15\",\n    \"gender\": \"Female\",\n    \"bloodGroup\": \"O+\",\n    \"maritalStatus\": \"Married\",\n    \"nationality\": \"Indian\",\n    \"preferredLanguage\": \"Hindi\"\n  },\n  \"contactInfo\": {\n    \"phoneNumber\": \"+91-9123456789\",\n    \"email\": \"lisa.kimpark@gmail.com\",\n    \"addressLine1\": \"15 FC Road\",\n    \"city\": \"Mumbai\",\n    \"state\": \"Maharashtra\",\n    \"country\": \"India\",\n    \"zipCode\": \"400001\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{patientUuid}}/update-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{patientUuid}}", "update-all"]
+            }
+          }
+        },
+        {
+          "name": "Delete Patient (Soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{patientUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{patientUuid}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Availability",
+      "item": [
+        {
+          "name": "Get Provider Availability",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availability/{{providerUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "availability", "{{providerUuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Set Weekly Schedule",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weeklySchedule\": [\n    {\n      \"dayOfWeek\": \"SUNDAY\",\n      \"slots\": [\n        { \"startTime\": \"08:00\", \"endTime\": \"12:00\", \"timezone\": \"GMT+5:30\", \"location\": \"Pune\" },\n        { \"startTime\": \"16:00\", \"endTime\": \"19:00\", \"timezone\": \"GMT+5:30\", \"location\": \"Main Clinic\" }\n      ]\n    },\n    {\n      \"dayOfWeek\": \"MONDAY\",\n      \"slots\": [\n        { \"startTime\": \"09:00\", \"endTime\": \"17:00\", \"timezone\": \"GMT+5:30\", \"location\": \"Pune\" }\n      ]\n    },\n    {\n      \"dayOfWeek\": \"TUESDAY\",\n      \"slots\": [\n        { \"startTime\": \"09:00\", \"endTime\": \"17:00\", \"timezone\": \"GMT+5:30\", \"location\": \"Pune\" }\n      ]\n    },\n    {\n      \"dayOfWeek\": \"WEDNESDAY\",\n      \"slots\": [\n        { \"startTime\": \"10:00\", \"endTime\": \"14:00\", \"timezone\": \"GMT+5:30\", \"location\": \"Main Clinic\" }\n      ]\n    },\n    {\n      \"dayOfWeek\": \"THURSDAY\",\n      \"slots\": [\n        { \"startTime\": \"09:00\", \"endTime\": \"17:00\", \"timezone\": \"GMT+5:30\", \"location\": \"Pune\" }\n      ]\n    },\n    {\n      \"dayOfWeek\": \"FRIDAY\",\n      \"slots\": [\n        { \"startTime\": \"09:00\", \"endTime\": \"13:00\", \"timezone\": \"GMT+5:30\", \"location\": \"Pune\" }\n      ]\n    },\n    {\n      \"dayOfWeek\": \"SATURDAY\",\n      \"slots\": []\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/availability/{{providerUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "availability", "{{providerUuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Slot",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startTime\": \"10:00\",\n  \"endTime\": \"18:00\",\n  \"timezone\": \"GMT+5:30\",\n  \"location\": \"Updated Clinic\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/availability/slots/{{slotUuid}}?providerUuid={{providerUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "availability", "slots", "{{slotUuid}}"],
+              "query": [
+                { "key": "providerUuid", "value": "{{providerUuid}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Slot",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availability/slots/{{slotUuid}}?providerUuid={{providerUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "availability", "slots", "{{slotUuid}}"],
+              "query": [
+                { "key": "providerUuid", "value": "{{providerUuid}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Block — Specific Time",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.blockUuid) {",
+                  "  pm.collectionVariables.set('blockUuid', jsonData.data.blockUuid);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"blockType\": \"LUNCH_BREAK\",\n  \"date\": \"2026-04-07\",\n  \"blockEntireDay\": false,\n  \"startTime\": \"12:00\",\n  \"endTime\": \"13:00\",\n  \"notes\": \"Daily lunch break\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/availability/block/{{providerUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "availability", "block", "{{providerUuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Add Block — Entire Day",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"blockType\": \"VACATION\",\n  \"date\": \"2026-04-09\",\n  \"blockEntireDay\": true,\n  \"notes\": \"Family vacation\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/availability/block/{{providerUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "availability", "block", "{{providerUuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Block",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/availability/block/{{blockUuid}}?providerUuid={{providerUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "availability", "block", "{{blockUuid}}"],
+              "query": [
+                { "key": "providerUuid", "value": "{{providerUuid}}" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Book Appointment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.uuid) {",
+                  "  pm.collectionVariables.set('appointmentUuid', jsonData.data.uuid);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientUuid\": \"{{patientUuid}}\",\n  \"providerUuid\": \"{{providerUuid}}\",\n  \"appointmentDate\": \"2026-04-07\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"10:30\",\n  \"notes\": \"Initial cardiac consultation\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/book",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "book"]
+            }
+          }
+        },
+        {
+          "name": "Get Appointment by UUID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{appointmentUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{appointmentUuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Get All Appointments",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/all?page=0&size=10&sort=appointmentDate,desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "all"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sort", "value": "appointmentDate,desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Appointments by Patient",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/patient/{{patientUuid}}?page=0&size=10&sort=appointmentDate,desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "patient", "{{patientUuid}}"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sort", "value": "appointmentDate,desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Appointments by Provider",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/provider/{{providerUuid}}?page=0&size=10&sort=appointmentDate,desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "provider", "{{providerUuid}}"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sort", "value": "appointmentDate,desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Appointments by Provider and Date",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/provider/{{providerUuid}}/date?date=2026-04-07",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "provider", "{{providerUuid}}", "date"],
+              "query": [
+                { "key": "date", "value": "2026-04-07" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Appointment Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\",\n  \"cancellationReason\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{appointmentUuid}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{appointmentUuid}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Appointment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{appointmentUuid}}/cancel?reason=Patient%20requested%20cancellation",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{appointmentUuid}}", "cancel"],
+              "query": [
+                { "key": "reason", "value": "Patient requested cancellation" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

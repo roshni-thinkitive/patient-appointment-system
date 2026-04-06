@@ -168,6 +168,13 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointmentRepository.save(appointment);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<AppointmentResponseDto> getAllAppointments(Pageable pageable) {
+        return appointmentRepository.findAll(pageable)
+                .map(this::toAppointmentResponseDto);
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private Appointment findByUuid(UUID uuid) {

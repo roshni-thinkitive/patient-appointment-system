@@ -19,8 +19,9 @@ public class Patient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, updatable = false)
-    private UUID uuid;
+    @Builder.Default
+    @Column(unique = true)
+    private UUID uuid = UUID.randomUUID();
 
     @Column(nullable = false)
     private String createdBy;
@@ -29,11 +30,14 @@ public class Patient {
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
+
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        this.uuid = UUID.randomUUID();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

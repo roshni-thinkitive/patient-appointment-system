@@ -1,6 +1,7 @@
 package com.appointment.controller;
 
 import com.appointment.dto.availability.AvailabilityRequestDto;
+import com.appointment.dto.availability.AvailabilityResponseDto;
 import com.appointment.dto.availability.BlockedSlotRequestDto;
 import com.appointment.dto.availability.BlockedSlotResponseDto;
 import com.appointment.dto.availability.ProviderAvailabilitySummaryDto;
@@ -39,7 +40,7 @@ public class AvailabilityController {
                 ResponseHelper.success("Weekly schedule updated successfully", result));
     }
 
-    @PostMapping("/{providerUuid}/block")
+    @PostMapping("/block/{providerUuid}")
     public ResponseEntity<Map<String, Object>> addBlockTime(
             @PathVariable UUID providerUuid,
             @Valid @RequestBody BlockedSlotRequestDto dto) {
@@ -48,11 +49,28 @@ public class AvailabilityController {
                 .body(ResponseHelper.created("Block time added successfully", result));
     }
 
-    @DeleteMapping("/{providerUuid}/block/{blockUuid}")
+    @DeleteMapping("/block/{blockUuid}")
     public ResponseEntity<Map<String, Object>> removeBlockTime(
-            @PathVariable UUID providerUuid,
-            @PathVariable UUID blockUuid) {
+            @PathVariable UUID blockUuid,
+            @RequestParam UUID providerUuid) {
         availabilityService.removeBlockedSlot(providerUuid, blockUuid);
         return ResponseEntity.ok(ResponseHelper.deleted("Block time removed successfully"));
+    }
+
+    @PutMapping("/slots/{slotUuid}")
+    public ResponseEntity<Map<String, Object>> updateSlot(
+            @PathVariable UUID slotUuid,
+            @RequestParam UUID providerUuid,
+            @Valid @RequestBody AvailabilityRequestDto.Slot dto) {
+        AvailabilityResponseDto result = availabilityService.updateSlot(providerUuid, slotUuid, dto);
+        return ResponseEntity.ok(ResponseHelper.success("Slot updated successfully", result));
+    }
+
+    @DeleteMapping("/slots/{slotUuid}")
+    public ResponseEntity<Map<String, Object>> deleteSlot(
+            @PathVariable UUID slotUuid,
+            @RequestParam UUID providerUuid) {
+        availabilityService.deleteSlot(providerUuid, slotUuid);
+        return ResponseEntity.ok(ResponseHelper.deleted("Slot deleted successfully"));
     }
 }

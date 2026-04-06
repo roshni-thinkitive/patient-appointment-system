@@ -1,0 +1,70 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-blocked-slots-table
+      author: roshni
+      changes:
+        - createTable:
+            tableName: blocked_slots
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: uuid
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: provider_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: block_type
+                  type: VARCHAR(255)
+              - column:
+                  name: blocked_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: block_start_time
+                  type: TIME
+                  constraints:
+                    nullable: false
+              - column:
+                  name: block_end_time
+                  type: TIME
+                  constraints:
+                    nullable: false
+              - column:
+                  name: block_entire_day
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+              - column:
+                  name: reason
+                  type: VARCHAR(255)
+              - column:
+                  name: notes
+                  type: VARCHAR(255)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: blocked_slots
+            baseColumnNames: provider_id
+            referencedTableName: providers
+            referencedColumnNames: id
+            constraintName: fk_blocked_slots_provider_id

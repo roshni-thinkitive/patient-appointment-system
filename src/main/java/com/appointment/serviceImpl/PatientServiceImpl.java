@@ -194,14 +194,61 @@ public class PatientServiceImpl implements PatientService {
     @Override
     @Transactional(readOnly = true)
     public Page<PatientResponseDto> getAllPatients(Pageable pageable) {
-        return patientRepository.findAll(pageable)
+        return patientRepository.findAllByIsDeletedFalse(pageable)
                 .map(this::buildPatientResponseFromDb);
+    }
+
+    @Override
+    @Transactional
+    public void deletePatient(UUID uuid) {
+        Patient patient = findPatientByUuid(uuid);
+        patient.setIsDeleted(true);
+        patientRepository.save(patient);
+    }
+
+    @Override
+    @Transactional
+    public PatientResponseDto updateAllPatientFields(UUID uuid, PatientRegistrationDto dto) {
+        Patient patient = findPatientByUuid(uuid);
+
+        // Update demographics
+        DemographicsDto demDto = dto.getDemographics();
+        Demographics demographics = demographicsRepository.findByPatient(patient)
+                .orElseGet(() -> Demographics.builder().patient(patient).build());
+        demographics.setFirstName(demDto.getFirstName());
+        demographics.setLastName(demDto.getLastName());
+        demographics.setDateOfBirth(demDto.getDateOfBirth());
+        demographics.setGender(demDto.getGender());
+        demographics.setBloodGroup(demDto.getBloodGroup());
+        demographics.setMaritalStatus(demDto.getMaritalStatus());
+        demographics.setNationality(demDto.getNationality());
+        demographics.setPreferredLanguage(demDto.getPreferredLanguage());
+        demographicsRepository.save(demographics);
+
+        // Update contact info
+        if (dto.getContactInfo() != null) {
+            ContactInfoDto ciDto = dto.getContactInfo();
+            ContactInfo contactInfo = contactInfoRepository.findByPatient(patient)
+                    .orElseGet(() -> ContactInfo.builder().patient(patient).build());
+            contactInfo.setPhoneNumber(ciDto.getPhoneNumber());
+            contactInfo.setAlternatePhone(ciDto.getAlternatePhone());
+            contactInfo.setEmail(ciDto.getEmail());
+            contactInfo.setAddressLine1(ciDto.getAddressLine1());
+            contactInfo.setAddressLine2(ciDto.getAddressLine2());
+            contactInfo.setCity(ciDto.getCity());
+            contactInfo.setState(ciDto.getState());
+            contactInfo.setCountry(ciDto.getCountry());
+            contactInfo.setZipCode(ciDto.getZipCode());
+            contactInfoRepository.save(contactInfo);
+        }
+
+        return buildPatientResponseFromDb(patient);
     }
 
     // ── private helpers ──────────────────────────────────────────────────────
 
     private Patient findPatientByUuid(UUID uuid) {
-        return patientRepository.findByUuid(uuid)
+        return patientRepository.findByUuidAndIsDeletedFalse(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient", "uuid", uuid));
     }
 

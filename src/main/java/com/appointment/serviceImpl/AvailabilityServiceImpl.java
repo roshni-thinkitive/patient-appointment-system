@@ -188,6 +188,44 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
+    @Transactional
+    public AvailabilityResponseDto updateSlot(UUID providerUuid, UUID slotUuid, AvailabilityRequestDto.Slot dto) {
+        Provider provider = findProviderByUuid(providerUuid);
+        ProviderAvailability slot = availabilityRepository.findByUuid(slotUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Slot", "uuid", slotUuid));
+
+        if (!slot.getProvider().getId().equals(provider.getId())) {
+            throw new ResourceNotFoundException("Slot", "uuid", slotUuid);
+        }
+
+        if (dto.getStartTime().isAfter(dto.getEndTime()) || dto.getStartTime().equals(dto.getEndTime())) {
+            throw new BadRequestException("Start time must be before end time");
+        }
+
+        slot.setStartTime(dto.getStartTime());
+        slot.setEndTime(dto.getEndTime());
+        slot.setTimezone(dto.getTimezone());
+        slot.setLocation(dto.getLocation());
+
+        slot = availabilityRepository.save(slot);
+        return toSlotResponseDto(slot);
+    }
+
+    @Override
+    @Transactional
+    public void deleteSlot(UUID providerUuid, UUID slotUuid) {
+        Provider provider = findProviderByUuid(providerUuid);
+        ProviderAvailability slot = availabilityRepository.findByUuid(slotUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Slot", "uuid", slotUuid));
+
+        if (!slot.getProvider().getId().equals(provider.getId())) {
+            throw new ResourceNotFoundException("Slot", "uuid", slotUuid);
+        }
+
+        availabilityRepository.delete(slot);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public boolean isProviderAvailable(UUID providerUuid, LocalDate date,
                                        LocalTime startTime, LocalTime endTime) {

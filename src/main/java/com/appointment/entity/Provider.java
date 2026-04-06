@@ -19,8 +19,9 @@ public class Provider {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, updatable = false)
-    private UUID uuid;
+    @Builder.Default
+    @Column(unique = true)
+    private UUID uuid = UUID.randomUUID();
 
     @Column(name = "created_by", nullable = false)
     private String createdBy;
@@ -37,6 +38,10 @@ public class Provider {
 
     private String phoneNumber;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -45,7 +50,6 @@ public class Provider {
 
     @PrePersist
     protected void onCreate() {
-        this.uuid = UUID.randomUUID();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
