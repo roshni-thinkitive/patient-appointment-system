@@ -5,7 +5,6 @@ import com.appointment.dto.appointment.AppointmentResponseDto;
 import com.appointment.dto.appointment.AppointmentStatusUpdateDto;
 import com.appointment.entity.Appointment;
 import com.appointment.entity.BlockedSlot;
-import com.appointment.entity.Demographics;
 import com.appointment.entity.Patient;
 import com.appointment.entity.Provider;
 import com.appointment.enums.AppointmentStatus;
