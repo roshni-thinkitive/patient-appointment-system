@@ -2,6 +2,8 @@ package com.appointment.serviceImpl;
 
 import com.appointment.dto.ehr.*;
 import com.appointment.enums.HistoryType;
+import com.appointment.exception.ResourceNotFoundException;
+import com.appointment.repository.FacesheetRepository;
 import com.appointment.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FacesheetServiceImpl implements FacesheetService {
 
+    private final FacesheetRepository facesheetRepository;
     private final AllergyService allergyService;
     private final VitalsService vitalsService;
     private final MedicationService medicationService;
@@ -25,6 +28,9 @@ public class FacesheetServiceImpl implements FacesheetService {
     @Override
     @Transactional(readOnly = true)
     public FacesheetSummaryDto getFacesheet(UUID patientUuid) {
+        facesheetRepository.findByUuidAndIsDeletedFalse(patientUuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient", "uuid", patientUuid));
+
         Pageable top5 = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
         Pageable top3 = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "createdAt"));
 
