@@ -17,50 +17,14 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // ── 404 — Module-specific Not Found exceptions ───────────────────────────
-
-    @ExceptionHandler(PatientNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handlePatientNotFound(PatientNotFoundException ex) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
-
-    @ExceptionHandler(DoctorNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleDoctorNotFound(DoctorNotFoundException ex) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
-
-    @ExceptionHandler(AppointmentNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleAppointmentNotFound(AppointmentNotFoundException ex) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
-
-    @ExceptionHandler(AvailabilityNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleAvailabilityNotFound(AvailabilityNotFoundException ex) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
-
-    // ── 404 — Generic resource not found (catches all remaining ResourceNotFoundException uses) ──
+    // ── 404 — Resource not found ────────────────────────────────────────────
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    // ── 409 — Conflict / Duplicate ───────────────────────────────────────────
-
-    @ExceptionHandler(DuplicateAppointmentException.class)
-    public ResponseEntity<Map<String, Object>> handleDuplicateAppointment(DuplicateAppointmentException ex) {
-        return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
-    }
-
-    // ── 400 — Invalid appointment time ───────────────────────────────────────
-
-    @ExceptionHandler(InvalidAppointmentTimeException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidAppointmentTime(InvalidAppointmentTimeException ex) {
-        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-
-    // ── 400 — Generic bad request (catches all remaining BadRequestException uses) ──
+    // ── 400 — Bad request ─────────────────────────────────────────────────
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Map<String, Object>> handleBadRequest(BadRequestException ex) {
